@@ -1,0 +1,99 @@
+.auth-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: url('../images/background.png') no-repeat left center;
+  background-size: cover;
+  z-index: -1; 
+  display: flex;
+  justify-content: flex-end; 
+  padding-right: 15%;
+}
+
+/* Контейнер с формой */
+.auth-content {
+  padding-top: 180px;
+  width: 372px;
+}
+
+.auth-logo {
+  position: absolute;
+  top: 80px;
+  left: 400px;
+  width: 230px; /* Размер логотипа */
+  height: auto;
+}
+
+@media (min-width: 1600px) {
+  .auth-background {
+      padding-right: 350px;
+  }
+
+  .auth-logo {
+    left: 500px;
+    top: 90px;
+  }
+}
+
+/* Для экранов 1440px */
+@media (max-width: 1440px) {
+  .auth-background {
+      padding-right: 204px;
+  }
+}
+
+/* Для экранов 1280px */
+@media (max-width: 1280px) {
+  .auth-background {
+      padding-right: 154px;
+  }
+
+  .auth-logo {
+    top: 70px;
+    left: 350px;
+    width: 230px;
+  }
+}
+
+@media (max-width: 768px) {
+  .auth-background {
+      background: none; 
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
+      align-items: center;
+      padding: 0;
+  }
+
+  .auth-logo {
+    position: static;
+    margin: 70px 0 80px 0; 
+    width: 230px; 
+ }
+
+  .auth-content{
+    padding: 0;
+  }
+}
+
+@media (max-width: 360px) {
+  .auth-background {
+      background: none;
+      display: flex;
+      justify-content: center; 
+      align-items: center;
+      padding: 0;
+  }
+
+  .auth-content {
+      max-width: 328px;
+  }
+
+  /* .auth-logo {
+    position: static;
+    margin: 50px 0 50px 0; 
+    width: 230px; 
+ } */
+}

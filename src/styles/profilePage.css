@@ -1,0 +1,20 @@
+.profile-container {
+  display: flex;
+  padding-top: 60px; 
+}
+
+.profile-content {
+  margin-left: 250px;
+  padding: 20px;
+  width: 100%;
+}
+
+/* .sidebar {
+  width: 250px;
+  background: #f8f9fa;
+  padding: 20px;
+  height: calc(100vh - 60px); 
+  position: fixed;
+  left: 0;
+  top: 60px; 
+} */

@@ -1,0 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;500;600;1,600&family=Rubik:ital,wght@0,700;1,700&display=swap');
+
+:root {
+  --black: #202022;
+  --grey: #C7C7CC;
+  --white: #FFFFFF;
+  --btn-color: #FEE719;
+}
+* {
+  margin: 0;
+  padding: 0;
+  /* box-sizing: border-box; */
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: #f4f4f9;
+}
+
+h3 {
+  font-family: 'Rubik', sans-serif;
+  font-weight: 700;
+}

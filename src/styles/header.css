@@ -1,0 +1,92 @@
+.header {
+    background: #FEE719;
+    /* padding: 10px 0; */
+  }
+  
+  .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1300px;
+    padding: 24px 70px;
+    gap: 160px;
+    /* margin: 0 auto; */
+  }
+  
+  .logo img {
+    height: 28px;
+    width: 231px;
+  }
+  
+  .nav {
+    display: flex;
+    margin: 0 32px;
+  }
+  
+  .nav a {
+    text-decoration: none;
+    color: black;
+    position: relative; /* Для круга */
+    /* padding: 0 10px; */
+  }
+  
+  .nav a:not(:last-child)::after {
+    content: "|";
+    color: black;
+    /* margin-left: 15px; */
+    
+  }
+  
+  /* 🔹 Кружок-подчеркивание */
+  .nav a:hover::before {
+    content: "";
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    width: 6px;
+    height: 6px;
+    background: black;
+    border-radius: 50%;
+    transform: translateX(-50%);
+  }
+  
+  /* 🔹 Кнопка "Войти" */
+  .nav .login-button {
+    border: 2px solid black;
+    padding: 5px 12px;
+    border-radius: 5px;
+  }
+  
+  .nav .login-button:hover {
+    background: black;
+    color: white;
+  }
+  
+  /* 📌 АДАПТИВНОСТЬ */
+  @media (max-width: 768px) {
+    .container {
+      flex-direction: column;
+      align-items: center;
+    }
+  
+    .nav {
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 10px;
+    }
+  
+    /* Убираем палки-разделители */
+    .nav a:not(:last-child)::after {
+      content: none;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .logo img {
+      height: 30px;
+    }
+  
+    .nav a {
+      font-size: 14px;
+    }
+  }

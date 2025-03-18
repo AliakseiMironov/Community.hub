@@ -1,0 +1,111 @@
+.notification {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 860px;
+    height: 218px;
+    background: #FFFFFF;
+    border-radius: 16px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 40px 0 24px 0;
+    /* margin-top: 40px; */
+    text-align: center;
+    z-index: 1000;
+    border: 2px solid #d9d9d9;
+  }
+  
+  .notification.success {
+    border-color: #FEE719;
+  }
+
+  .notification.recovery_pass {
+    border-color: #FEE719;
+  }
+  
+  .notification.error {
+    border-color: #ED4010;
+  }
+  
+  .notification-header {
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  .notification-close {
+    position: absolute;
+    top: -20px; /* Поднимаем вверх за границу */
+    right: -20px; /* Смещаем вправо за границу */
+    background: #E5E5EA;
+    border: 2px solid #d9d9d9;
+    border-radius: 50%;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  }
+  
+  .notification-close svg {
+    width: 24px;
+    height: 24px;
+    /* stroke: #333; */
+    /* transition: stroke 0.2s; */
+  }
+  
+  .notification-close:hover svg {
+    stroke: #ED4010;
+  }
+  
+  .notification-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* gap: 10px; */
+  }
+  
+  .notification-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 32px;
+  }
+  
+  .notification.success .notification-icon {
+    background: #FEE719; 
+  }
+  .notification.recovery_pass .notification-icon {
+    background: #FEE719; 
+  }
+  .notification.error .notification-icon {
+    background: #ED4010;
+  }
+
+  .notification-icon svg {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .notification-title {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 600;
+    font-size: 20px;
+    line-height: 24px;
+    color: var(--black);
+    margin-bottom: 16px;
+  }
+  
+  .notification-message {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 22px;
+    color: var(--black);
+  }
+  
