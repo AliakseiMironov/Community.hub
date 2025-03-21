@@ -11,36 +11,64 @@
   align-items: center;
   font-size: 16px;
   font-weight: bold;
-  color: white;
+  color: #FEE719; /* Желтые буквы */
+  background-color: #202022; /* Черный фон */
   text-transform: uppercase;
   border: none;
   cursor: pointer;
+  position: relative;
 }
 
+.notification-indicator {
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  width: 10px;
+  height: 10px;
+  background-color: #FFFFFF;
+  border: solid 1px #FEE719;
+  border-radius: 50%;
+}
+
+/* Выпадающее меню */
 .profile-dropdown {
   position: absolute;
   top: 50px;
   right: 0;
-  background: white;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  background: #FFFFFF;
+  border-radius: 8px;
   width: 180px;
   list-style: none;
   padding: 0;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  /* gap: 8px; */
+
+  font-family: 'Roboto', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  color: #C7C7CC;
 }
 
 .profile-dropdown li {
-  padding: 10px;
+  padding: 7px 12px;
   cursor: pointer;
-  transition: background 0.2s;
+  /* transition: background 0.2s; */
 }
 
 .profile-dropdown li:hover {
-  background: #f8f9fa;
+  color: #202022;
+  background: #FAFAFC;
 }
 
-.logout {
-  color: red;
-  font-weight: bold;
+.profile-dropdown li:first-child:hover {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
 }
+
+.profile-dropdown li:last-child:hover {
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+

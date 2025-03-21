@@ -9,6 +9,11 @@ import RecoveryPasswordForm from "../pages/RecoveryPasswordForm";
 import ProfilePage from "../pages/ProfilePage";
 import EventRegistration from "../pages/EventRegistration";
 import ProtectedRoute from "../components/ProtectedRoute";
+import Calendar from "../pages/Calendar";
+import Community from "../pages/Community";
+import Blog from "../pages/Blog";
+import About from "../pages/About";
+import Contacts from "../pages/Contacts";
 import { NotificationProvider } from "../context/NotificationContext";
 
 const EmptySection = ({ text }) => <div className="empty-section"><p>{text}</p></div>;
@@ -27,7 +32,12 @@ const Navigation = () => {
         {/* Страницы с Header (обернуты в Layout) */}
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
-          
+          <Route path="/calendar" element={<Calendar />} />
+          <Route path="/community" element={<Community />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contacts" element={<Contacts />} />
+
           {/* Личный кабинет с вложенными маршрутами */}
           <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>}>
             <Route index element={<EmptySection />} />

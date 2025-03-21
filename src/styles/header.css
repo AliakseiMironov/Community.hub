@@ -1,6 +1,5 @@
 .header {
     background: #FEE719;
-    /* padding: 10px 0; */
   }
   
   .container {
@@ -8,78 +7,153 @@
     justify-content: space-between;
     align-items: center;
     max-width: 1300px;
+    /* height: 96px; */
     padding: 24px 70px;
-    gap: 160px;
-    /* margin: 0 auto; */
   }
   
   .logo img {
     height: 28px;
-    width: 231px;
+    width: 230px;
   }
   
   .nav {
     display: flex;
-    margin: 0 32px;
+    align-items: center;
+    justify-content: space-between;
+    width: 590px;
+    /* gap: 32px; */
+    /* margin: 0 16px; */
   }
   
   .nav a {
     text-decoration: none;
-    color: black;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 22px;
+    color: #202022;
     position: relative; /* Для круга */
-    /* padding: 0 10px; */
+   
+  }
+
+  /* Понимаю, что костыль, но не смог найти решения более элегантного */
+  .nav .calendar{
+    width: 83px;
+  }
+  .nav .community  {
+    width: 93px;
+  }
+  .nav .blog  {
+    width: 36px;
+  }
+  .nav .about  {
+    width: 45px;
+  }
+  .nav .contacts  {
+    width: 75px;
+  }
+/* Костыль окончен */
+
+
+
+  .nav a:hover {
+    font-weight: 600;
+    color: #202022;
   }
   
-  .nav a:not(:last-child)::after {
-    content: "|";
-    color: black;
-    /* margin-left: 15px; */
+  .nav a.active {
+    font-weight: 600;
+    color: #202022; 
+}
     
-  }
-  
-  /* 🔹 Кружок-подчеркивание */
-  .nav a:hover::before {
+  /* Кружок-подчеркивание */
+  .nav a.active::before {
     content: "";
     position: absolute;
-    bottom: -5px;
+    bottom: -9px;
     left: 50%;
-    width: 6px;
-    height: 6px;
-    background: black;
+    width: 8px;
+    height: 8px;
+    background: #202022;
     border-radius: 50%;
     transform: translateX(-50%);
   }
-  
-  /* 🔹 Кнопка "Войти" */
-  .nav .login-button {
-    border: 2px solid black;
-    padding: 5px 12px;
-    border-radius: 5px;
+
+  /* Разделитель */
+  .nav .separator{
+    width: 1px;  
+    height: 24px;  
+    background-color: #202022; 
+    /* margin: 16px; */
   }
   
-  .nav .login-button:hover {
-    background: black;
-    color: white;
+  /* Кнопка "Войти" */
+  .container .login-button {
+    border: 1px solid #202022;
+    padding: 14px 57px;
+    border-radius: 8px;
+
+    text-decoration: none;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 20px;
+    color: #202022;
   }
+
+  .container .login-button:hover {
+    background: #202022;
+    color: #FEE719;
+  }
+
+  /* Стили для бургер-меню */
+.burger {
+  display: none;
+  flex-direction: column;
+  cursor: pointer;
+}
+
+.bar {
+  width: 30px;
+  height: 4px;
+  background-color: #202022;
+  margin: 5px 0;
+  transition: 0.3s;
+}
   
-  /* 📌 АДАПТИВНОСТЬ */
+  /* АДАПТИВНОСТЬ */
   @media (max-width: 768px) {
     .container {
       flex-direction: column;
       align-items: center;
     }
   
-    .nav {
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 10px;
+    .burger {
+      display: flex;
     }
   
-    /* Убираем палки-разделители */
-    .nav a:not(:last-child)::after {
-      content: none;
+    .nav {
+      display: none;
+      flex-direction: column;
+      position: absolute;
+      top: 60px;
+      left: 0;
+      width: 100%;
+      background: #fee719;
+      padding: 20px 0;
+    }
+  
+    .nav.open {
+      display: flex;
+    }
+  
+    .nav a {
+      padding: 10px;
+      text-align: center;
+      width: 100%;
     }
   }
+  
   
   @media (max-width: 480px) {
     .logo img {

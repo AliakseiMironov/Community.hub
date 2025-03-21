@@ -1,48 +1,62 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../styles/profileMenu.css";
 
-// Функция для получения инициалов
 const getUserInitials = (firstName, lastName) => {
-  return `${firstName[0]}${lastName[0]}`.toUpperCase();
-};
-
-// Функция для генерации случайного цвета
-const getRandomColor = () => {
-  const colors = ["#FFA07A", "#FFD700", "#98FB98", "#87CEFA", "#DDA0DD", "#FF69B4"];
-  return colors[Math.floor(Math.random() * colors.length)];
+  return firstName && lastName ? `${firstName[0]}${lastName[0]}`.toUpperCase() : "";
 };
 
 const ProfileMenu = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef(null);
 
-  if (!user) return null;
+  // Закрытие меню при клике вне его
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  if (!user) return null; 
 
   const userInitials = getUserInitials(user.firstName, user.lastName);
-  const bgColor = getRandomColor();
 
   const handleLogout = () => {
     logout();
+    setIsOpen(false);
     navigate("/");
   };
 
+  const handleMenuClick = (path) => {
+    navigate(path);
+    setIsOpen(false);
+  };
+
   return (
-    <div className="profile-menu">
-      <button className="profile-avatar" style={{ backgroundColor: bgColor }} onClick={() => setIsOpen(!isOpen)}>
+    <div className="profile-menu" ref={menuRef}>
+      <button className="profile-avatar" onClick={() => setIsOpen(!isOpen)}>
         {userInitials}
+        <span className="notification-indicator"></span>
       </button>
 
       {isOpen && (
         <ul className="profile-dropdown">
-          <li onClick={() => navigate("/profile")}>Профиль</li>
-          <li onClick={() => navigate("/profile/notifications")}>Уведомления</li>
-          <li onClick={() => navigate("/profile/events")}>Мои мероприятия</li>
-          <li onClick={() => navigate("/profile/community")}>Мои сообщества</li>
-          <li onClick={() => navigate("/profile/settings")}>Настройки</li>
-          <li className="logout" onClick={handleLogout}>Выйти</li>
+          <li onClick={() => handleMenuClick("/profile")}>Мой профиль</li>
+          <li onClick={() => handleMenuClick("/profile/notifications")}>Уведомления</li>
+          <li onClick={() => handleMenuClick("/profile/events")}>Мероприятия</li>
+          <li onClick={() => handleMenuClick("/profile/community")}>Сообщества</li>
+          <li onClick={() => handleMenuClick("/profile/settings")}>Настройки</li>
+          <li onClick={handleLogout}>Выйти</li>
         </ul>
       )}
     </div>
