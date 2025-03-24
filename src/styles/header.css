@@ -2,12 +2,11 @@
     background: #FEE719;
   }
   
-  .container {
+  .header .container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    max-width: 1300px;
-    /* height: 96px; */
+    max-width: 1440px;
     padding: 24px 70px;
   }
   
@@ -21,8 +20,6 @@
     align-items: center;
     justify-content: space-between;
     width: 590px;
-    /* gap: 32px; */
-    /* margin: 0 16px; */
   }
   
   .nav a {
@@ -84,7 +81,6 @@
     width: 1px;  
     height: 24px;  
     background-color: #202022; 
-    /* margin: 16px; */
   }
   
   /* Кнопка "Войти" */
@@ -106,6 +102,11 @@
     color: #FEE719;
   }
 
+  .container .login-button:active {
+    color: #FFFFFF;
+  }
+
+
   /* Стили для бургер-меню */
 .burger {
   display: none;
@@ -121,7 +122,7 @@
   transition: 0.3s;
 }
   
-  /* АДАПТИВНОСТЬ */
+  /* АДАПТИВНОСТЬ очень минимально, потому что нет еще макета на это*/
   @media (max-width: 768px) {
     .container {
       flex-direction: column;

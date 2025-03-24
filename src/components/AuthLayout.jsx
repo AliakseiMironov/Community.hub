@@ -1,6 +1,6 @@
 import React from "react";
 import "../styles/authBackground.css";
-import logo from "../images/logo.png";
+import logo from "../images/header-logo.png";
 
 const AuthLayout = ({ children }) => {
   return (
