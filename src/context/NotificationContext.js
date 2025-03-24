@@ -5,10 +5,12 @@ const NotificationContext = createContext();
 
 export const NotificationProvider = ({ children }) => {
   const [notification, setNotification] = useState(null);
+  let timer;
 
   const showNotification = (type, message) => {
     setNotification({ type, message });
-    setTimeout(() => setNotification(null), 1000000);
+    clearTimeout(timer); // Очищаем предыдущий таймер, если есть
+    timer = setTimeout(() => setNotification(null), 600000); // Уведомление исправить после тестов на 5 сек
   };
 
   return (
@@ -25,4 +27,13 @@ export const NotificationProvider = ({ children }) => {
   );
 };
 
-export const useNotification = () => useContext(NotificationContext);
+// Хук для использования контекста
+export const useNotification = () => {
+  const context = useContext(NotificationContext);
+  if (!context) {
+    throw new Error(
+      "useNotification must be used within a NotificationProvider"
+    );
+  }
+  return context;
+};
