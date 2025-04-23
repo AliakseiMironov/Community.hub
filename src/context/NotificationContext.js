@@ -1,25 +1,28 @@
 import React, { createContext, useState, useContext } from "react";
-import Notification from "../components/Notification";
+import Notification from "../components/common/Notification/Notification";
 
 const NotificationContext = createContext();
 
-export const NotificationProvider = ({ children }) => {
+const NotificationProvider = ({ children }) => {
   const [notification, setNotification] = useState(null);
   let timer;
 
-  const showNotification = (type, message) => {
-    setNotification({ type, message });
-    clearTimeout(timer); // Очищаем предыдущий таймер, если есть
-    timer = setTimeout(() => setNotification(null), 600000); // Уведомление исправить после тестов на 5 сек
+  const showNotification = (type, message, actions) => {
+    setNotification({ type, message, actions });
+    if (type !== 'saveNoData') {
+      clearTimeout(timer);
+      timer = setTimeout(() => setNotification(null), 600000);
+    }
   };
 
   return (
-    <NotificationContext.Provider value={showNotification}>
+    <NotificationContext.Provider value={{ showNotification }}>
       {children}
       {notification && (
         <Notification
           type={notification.type}
           message={notification.message}
+          actions={notification.actions}
           onClose={() => setNotification(null)}
         />
       )}
@@ -28,7 +31,7 @@ export const NotificationProvider = ({ children }) => {
 };
 
 // Хук для использования контекста
-export const useNotification = () => {
+const useNotification = () => {
   const context = useContext(NotificationContext);
   if (!context) {
     throw new Error(
@@ -37,3 +40,5 @@ export const useNotification = () => {
   }
   return context;
 };
+
+export { NotificationProvider, useNotification };

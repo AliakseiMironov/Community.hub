@@ -1,0 +1,105 @@
+/* Custom select styles */
+.custom-select {
+    position: relative;
+    width: 100%;
+  }
+  
+  .custom-select.custom-input-error .custom-select-header {
+    border-color: #FF3B30;
+  }
+  
+  .custom-select-header {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #C7C7CC;
+    border-radius: 8px;
+    background: #FFFFFF;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+  }
+  
+  .custom-select-header span:first-child {
+    color: #202022;
+  }
+  
+  .custom-select:not(.has-value) .custom-select-header span:first-child {
+    color: #C7C7CC;
+  }
+  
+  .custom-select-header span:empty {
+    color: #202022;
+  }
+  
+  .custom-select-header:hover {
+    border-color: #FEE719;
+  }
+  
+  .custom-select-arrow {
+    transition: transform 0.2s ease;
+    color: #C7C7CC;
+  }
+  
+  .custom-select-header.open .custom-select-arrow {
+    transform: rotate(180deg);
+  }
+  
+  .custom-select-options {
+    max-height: 150px;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #FFFFFF;
+    border: 1px solid #C7C7CC;
+    border-radius: 8px;
+    margin-top: 4px;
+    overflow-y: auto;
+    scrollbar-width: none;
+    z-index: 1000;
+    display: none;
+  }
+  
+  .custom-select.open .custom-select-options {
+    display: block;
+  }
+  
+  .custom-select-option {
+    padding: 6px 12px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: #73747A;
+    cursor: pointer;
+  }
+  
+  .custom-select-option:hover {
+    background: #FAFAFC;
+    color: #202022;
+  }
+  
+  /* Custom select with input styles */
+  .custom-select-custom-input {
+    padding: 8px 12px;
+    border-top: 1px solid #E5E5E5;
+  }
+  
+  .custom-select-custom-input input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #C7C7CC;
+    border-radius: 4px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: #202022;
+  }
+  
+  .custom-select-custom-input input:focus {
+    outline: none;
+    border-color: #FEE719;
+  }

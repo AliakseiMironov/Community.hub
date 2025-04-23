@@ -1,21 +1,21 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import Layout from "../components/Layout";
-import Home from "../pages/Home";
-import Login from "../pages/Login";
-import Signup from "../pages/SignupForm";
-import ForgotPasswordForm from "../pages/ForgotPasswordForm";
-import RecoveryPasswordForm from "../pages/RecoveryPasswordForm";
-import ProfilePage from "../pages/ProfilePage";
-import EventRegistration from "../pages/EventRegistration";
+import Layout from "../components/Layout/top_down_layout/Layout";
+import Home from "../pages/Home/Home";
+import Login from "../components/auth/forms/Login";
+import Signup from "../components/auth/forms/SignupForm";
+import ForgotPasswordForm from "../components/auth/forms/ForgotPasswordForm";
+import RecoveryPasswordForm from "../components/auth/forms/RecoveryPasswordForm";
+import ProfilePage from "../pages/Profile/ProfilePage";
+import EventRegistration from "../components/events/EventRegistrationForm/EventRegistration";
 import ProtectedRoute from "../components/ProtectedRoute";
-import Calendar from "../pages/Calendar";
-import Community from "../pages/Community";
-import Blog from "../pages/Blog";
-import About from "../pages/About";
-import Contacts from "../pages/Contacts";
+import Calendar from "../pages/Calendar/Calendar";
+import Community from "../pages/Community/Community";
+import Blog from "../pages/Blog/Blog";
+import About from "../pages/About/About";
+import Contacts from "../pages/Contacts/Contacts";
 import { NotificationProvider } from "../context/NotificationContext";
-import EventsManagementPage from "../pages/EventsManagementPage";
+import EventsManagementPage from "../pages/EventsManagement/EventsManagementPage";
 
 const EmptySection = ({ text }) => <div className="empty-section"><p>{text}</p></div>;
 
