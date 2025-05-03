@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import EventCard from "../../components/events/EventCard/EventCard";
-import "./EventsManagementPage.css";
+import "../EventsManagement/EventsManagementPage.css";
 // стили для страницы управления мероприятиями берутся из profilePage.css т.к. events-management передается в profilePage.jsx в качестве Outlet
 const EventsManagementPage = () => {
    const navigate = useNavigate();
@@ -41,7 +41,7 @@ const EventsManagementPage = () => {
       <div className="events-management">
          <button
             className="create-event-btn"
-            onClick={() => navigate("/register-event")}
+            onClick={() => navigate("/register-community")}
          >
             <span className="icon-wrapper">
                <svg
@@ -57,13 +57,13 @@ const EventsManagementPage = () => {
                   />
                </svg>
             </span>
-            Создать мероприятие
+            Создать сообщество
          </button>
 
          {events.length === 0 ? (
             <div className="empty-events">
                <p>
-                  Здесь будут отображаться карточки мероприятий, которые вы
+                  Здесь будут отображаться карточки сообществ, которые вы
                   создадите. Настройте основные параметры через форму заявки
                   выше и начните организовывать свои первые мероприятия.
                </p>
