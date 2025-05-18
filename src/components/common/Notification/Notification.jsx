@@ -23,7 +23,7 @@ const Notification = ({ type, message, actions, onClose }) => {
       // case "save_step":
       //   return "Шаг сохранен";
       case "event_created":
-        return "Мероприятие создано";
+        return "Ваше мероприятие успешно опубликовано";
       case "event_edited":
         return "Мероприятие отредактировано";
       case "form_cancelled":

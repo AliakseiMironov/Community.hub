@@ -10,6 +10,7 @@ import { useNotification } from "../../../context/NotificationContext";
 const EventRegistration = () => {
   const { id } = useParams();
   const [step, setStep] = useState(1);
+  const [completedSteps, setCompletedSteps] = useState([]);
   const navigate = useNavigate();
   const { showNotification } = useNotification();
 
@@ -45,17 +46,34 @@ const EventRegistration = () => {
     }
   }, [id]);
 
-  const handleNext = (data) => {
-    setFormData((prev) => ({ ...prev, ...data }));
-    if (step === 4) {
-      handleSave(data);
-    } else {
-      setStep((prev) => prev + 1);
-      showNotification({
-        type: "success",
-        message: "Данные успешно сохранены!"
-      });
+  // Функция для проверки заполненности шага
+  const isStepCompleted = (stepNumber) => {
+    if (!formData) return false;
+    
+    switch (stepNumber) {
+      case 1:
+        return formData.eventName && formData.description;
+      case 2:
+        return formData.programBlocks && formData.programBlocks.length > 0;
+      case 3:
+        return formData.tickets && formData.tickets.length > 0;
+      case 4:
+        return formData.team && formData.team.length > 0;
+      default:
+        return false;
     }
+  };
+
+  // Функция для перехода к шагу
+  const goToStep = (stepNumber) => {
+    setStep(stepNumber);
+  };
+
+  // Обновляем completedSteps при переходе на следующий шаг
+  const handleNext = (data) => {
+    setFormData(prev => ({ ...prev, ...data }));
+    setCompletedSteps(prev => [...new Set([...prev, step])]);
+    setStep(prev => prev + 1);
   };
 
   const handleBack = () => {
@@ -126,10 +144,30 @@ const EventRegistration = () => {
             Назад
           </button>
           <ul className="registration-menu">
-            <li className={step === 1 ? "active" : ""}>Общая информация</li>
-            <li className={step === 2 ? "active" : ""}>Программа</li>
-            <li className={step === 3 ? "active" : ""}>Билеты</li>
-            <li className={step === 4 ? "active" : ""}>Команда</li>
+            <li 
+              className={`${step === 1 ? "active" : ""} ${completedSteps.includes(1) ? "completed" : ""}`}
+              onClick={() => goToStep(1)}
+            >
+              Общая информация
+            </li>
+            <li 
+              className={`${step === 2 ? "active" : ""} ${completedSteps.includes(2) ? "completed" : ""}`}
+              onClick={() => goToStep(2)}
+            >
+              Программа
+            </li>
+            <li 
+              className={`${step === 3 ? "active" : ""} ${completedSteps.includes(3) ? "completed" : ""}`}
+              onClick={() => goToStep(3)}
+            >
+              Билеты
+            </li>
+            <li 
+              className={`${step === 4 ? "active" : ""} ${completedSteps.includes(4) ? "completed" : ""}`}
+              onClick={() => goToStep(4)}
+            >
+              Команда
+            </li>
           </ul>
         </nav>
 

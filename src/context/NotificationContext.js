@@ -7,9 +7,21 @@ const NotificationProvider = ({ children }) => {
   const [notification, setNotification] = useState(null);
   let timer;
 
-  const showNotification = (type, message, actions) => {
-    setNotification({ type, message, actions });
-    if (type !== 'saveNoData') {
+  const showNotification = (typeOrConfig, message, actions) => {
+    let config;
+
+    if (typeof typeOrConfig === "object") {
+      config = typeOrConfig;
+    } else {
+      config = {
+        type: typeOrConfig,
+        message,
+        actions,
+      };
+    }
+
+    setNotification(config);
+    if (config.type !== "saveNoData") {
       clearTimeout(timer);
       timer = setTimeout(() => setNotification(null), 600000);
     }

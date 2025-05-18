@@ -61,10 +61,12 @@ const StepTwo = ({ onNext, onBack, formData, setFormData }) => {
     register,
     handleSubmit,
     control,
+    formState: { errors },
     watch,
-    setValue,
     getValues,
-    formState: { errors }
+    trigger,
+    formState,
+    setValue
   } = useForm({
     defaultValues: formData || { programBlocks: [] },
     resolver: yupResolver(schema)
@@ -88,6 +90,29 @@ const StepTwo = ({ onNext, onBack, formData, setFormData }) => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  useEffect(() => {
+    if (formData?.programBlocks) {
+      // Устанавливаем значения для программных блоков
+      formData.programBlocks.forEach((block, index) => {
+        if (block.startTime) {
+          setValue(`programBlocks.${index}.startTime`, block.startTime, { shouldValidate: true });
+        }
+        if (block.endTime) {
+          setValue(`programBlocks.${index}.endTime`, block.endTime, { shouldValidate: true });
+        }
+        if (block.type) {
+          setValue(`programBlocks.${index}.type`, block.type, { shouldValidate: true });
+        }
+        if (block.title) {
+          setValue(`programBlocks.${index}.title`, block.title, { shouldValidate: true });
+        }
+        if (block.speakers) {
+          setValue(`programBlocks.${index}.speakers`, block.speakers, { shouldValidate: true });
+        }
+      });
+    }
+  }, [formData, setValue]);
 
   const addProgramBlock = () => {
     append({
@@ -351,47 +376,47 @@ const StepTwo = ({ onNext, onBack, formData, setFormData }) => {
     setSelectedBlockType(type);
   };
 
-  const handleSaveDraft = async (data) => {
-    const currentValues = getValues();
-    const hasAnyData = currentValues.programBlocks?.some(block => 
-      block.type || block.startTime || block.endTime || block.title || 
-      block.speakers?.some(speaker => 
-        speaker.lastName || speaker.firstName || speaker.email || speaker.position
-      )
-    );
-
-    if (!hasAnyData) {
-      showNotification({
-        type: 'saveNoData',
-        message: 'Ни одно поле в форме не заполнено. Вы уверены, что хотите прекратить заполнение?',
-        actions: [
-          {
-            label: 'Подтвердить',
-            type: 'primary',
-            onClick: () => {
-              navigate('/profile/events');
-            }
-          },
-          {
-            label: 'Возобновить',
-            type: 'secondary',
-            onClick: () => {}
-          }
-        ]
-      });
-      return;
-    }
-
+  const handleSaveDraft = async () => {
     try {
+      const currentValues = getValues();
+      
+      // Проверяем, есть ли заполненные поля
+      const hasFilledFields = Object.values(currentValues).some(value => {
+        if (Array.isArray(value)) return value.length > 0;
+        if (typeof value === 'object' && value !== null) {
+          return Object.values(value).some(v => v !== null && v !== '');
+        }
+        return value !== null && value !== '';
+      });
+
+      if (!hasFilledFields) {
+        showNotification({
+          type: 'saveNoData',
+          message: 'Ни одно поле в форме не заполнено. Вы уверены, что хотите прекратить заполнение?',
+          actions: [
+            {
+              label: 'Подтвердить',
+              type: 'primary',
+              onClick: () => navigate('/profile/events')
+            },
+            {
+              label: 'Возобновить',
+              type: 'secondary',
+              onClick: () => {}
+            }
+          ]
+        });
+        return;
+      }
+
       const updatedFormData = {
         ...formData,
-        programBlocks: currentValues.programBlocks || [],
+        ...currentValues,
         status: "draft",
         isDraft: true,
         lastSaved: new Date().toISOString()
       };
 
-      // Сохраняем в localStorage
       let savedEvents = JSON.parse(localStorage.getItem("events")) || [];
       if (formData.id) {
         savedEvents = savedEvents.map(e => e.id === formData.id ? updatedFormData : e);
@@ -404,7 +429,7 @@ const StepTwo = ({ onNext, onBack, formData, setFormData }) => {
       setFormData(updatedFormData);
       showNotification({
         type: 'saveDraft',
-        message: 'Черновик мероприятия успешно сохранен'
+        message: 'Черновик мероприятия с внесенными данными успешно сохранен и будет отображен в личном кабинете в виде карточки, где вы можете управлять им.'
       });
       navigate('/profile/events');
     } catch (error) {
@@ -416,25 +441,33 @@ const StepTwo = ({ onNext, onBack, formData, setFormData }) => {
     }
   };
 
-  const onSubmit = (data) => {
-    if (Object.keys(errors).length > 0) {
-      const errorMessages = Object.values(errors)
-        .map(error => error.message)
-        .filter(message => message)
-        .join('\n');
+  const onSubmit = async (data) => {
+    try {
+      await trigger();
+      const errors = formState.errors;
       
+      if (Object.keys(errors).length > 0) {
+        // Показываем ошибки валидации
+        Object.values(errors).forEach(error => {
+          if (error.message) {
+            showNotification({
+              type: 'error',
+              message: error.message
+            });
+          }
+        });
+        return;
+      }
+
+      // Если ошибок нет, просто переходим дальше
+      onNext(data);
+    } catch (error) {
+      console.error('Ошибка при отправке формы:', error);
       showNotification({
         type: 'error',
-        message: `Пожалуйста, исправьте следующие ошибки:\n${errorMessages}`
+        message: 'Произошла ошибка при отправке формы'
       });
-      return;
     }
-
-    setFormData(prev => ({
-      ...prev,
-      programBlocks: data.programBlocks
-    }));
-    onNext(data);
   };
 
   return (
@@ -562,7 +595,7 @@ const StepTwo = ({ onNext, onBack, formData, setFormData }) => {
                           <span>Спикер {speakerIndex + 1}</span>
                           <button
                             type="button"
-                            className="btn-remove-speaker"
+                            className="btn-remove"
                             onClick={() => removeSpeaker(blockIndex, speakerIndex)}
                           >
                             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -709,33 +742,37 @@ const StepTwo = ({ onNext, onBack, formData, setFormData }) => {
                         </div>
                     </div>
                   ))}
-
-                    <button type="button" className="btn-addSpeaker" onClick={() => addSpeaker(blockIndex)}>
+                  <div className="addButtons">
+                  <button type="button" className="btn-add" onClick={() => addSpeaker(blockIndex)}>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M19 12C19 12.5523 18.5523 13 18 13H13V18C13 18.5523 12.5523 19 12 19C11.4477 19 11 18.5523 11 18V13H6C5.44772 13 5 12.5523 5 12C5 11.4477 5.44772 11 6 11H11V6C11 5.44772 11.4477 5 12 5C12.5523 5 13 5.44772 13 6V11H18C18.5523 11 19 11.4477 19 12Z" fill="currentColor"/>
                     </svg>
                       Добавить спикера
                   </button>
+                  </div>
+                    
                 </div>
               </div>
             )}
           </div>
         );
       })}
-
-        <button type="button" className="btn-addBlok" onClick={addProgramBlock}>
+        <div className="addButtons">
+          <button type="button" className="btn-add" onClick={addProgramBlock}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M19 12C19 12.5523 18.5523 13 18 13H13V18C13 18.5523 12.5523 19 12 19C11.4477 19 11 18.5523 11 18V13H6C5.44772 13 5 12.5523 5 12C5 11.4477 5.44772 11 6 11H11V6C11 5.44772 11.4477 5 12 5C12.5523 5 13 5.44772 13 6V11H18C18.5523 11 19 11.4477 19 12Z" fill="currentColor"/>
           </svg>
           Добавить блок программы
       </button>
+      </div>
+        
       </form>
 
       <div className="form-buttons">
         <button type="submit" className="btn-сontinue" onClick={handleSubmit(onSubmit)}>
           Продолжить
         </button>
-        <button type="button" className="btn-saveAsDraft" onClick={handleSubmit(handleSaveDraft)}>
+        <button type="button" className="btn-saveAsDraft" onClick={handleSaveDraft}>
           Сохранить как черновик
         </button>
       </div>

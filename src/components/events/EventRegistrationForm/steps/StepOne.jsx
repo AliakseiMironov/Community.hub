@@ -38,15 +38,8 @@ const schema = yup.object().shape({
       if (!value) return true;
       return value.length >= 10;
     }),
-  maxParticipants: yup.number()
-    .transform((value) => (isNaN(value) ? undefined : value))
-    .test('participants-format', 'Количество участников должно быть числом', function(value) {
-      if (!value) return true;
-      return !isNaN(value) && value > 0;
-    }),
   cardBanner: yup.mixed().required("Загрузите баннер карточки мероприятия"),
-  pageBanner: yup.mixed().required("Загрузите баннер страницы мероприятия"),
-  status: yup.string().required("Выберите статус мероприятия")
+  pageBanner: yup.mixed().required("Загрузите баннер страницы мероприятия")
 });
 
 const categoryOptions = [
@@ -78,12 +71,13 @@ const StepOne = ({ onNext, formData, setFormData }) => {
     setValue,
     setError,
     clearErrors,
-    formState: { errors },
+    formState,
     watch,
     getValues,
+    trigger,
   } = useForm({
     defaultValues: formData || {},
-    resolver: yupResolver(schema),
+    resolver: yupResolver(schema)
   });
 
   // Проверяет размеры загруженного изображения
@@ -216,22 +210,43 @@ const StepOne = ({ onNext, formData, setFormData }) => {
 
   useEffect(() => {
     if (formData) {
+      // Устанавливаем значения для всех полей
       Object.keys(formData).forEach((key) => {
-        setValue(key, formData[key]);
+        setValue(key, formData[key], { shouldValidate: false });
       });
-    }
-  }, [formData, setValue]);
 
-  useEffect(() => {
-    if (formData) {
+      // Устанавливаем превью для баннеров
       if (formData.cardBanner) {
         setCardPreview(formData.cardBanner);
       }
       if (formData.pageBanner) {
         setPagePreview(formData.pageBanner);
       }
+
+      // Устанавливаем значения для кастомных полей
+      if (formData.eventType) {
+        setValue('eventType', formData.eventType, { shouldValidate: true });
+      }
+      if (formData.eventFormat) {
+        setValue('eventFormat', formData.eventFormat, { shouldValidate: true });
+      }
+      if (formData.category) {
+        setValue('category', formData.category, { shouldValidate: true });
+      }
+      if (formData.tags) {
+        setValue('tags', formData.tags, { shouldValidate: true });
+      }
+      if (formData.date) {
+        setValue('date', formData.date, { shouldValidate: true });
+      }
+      if (formData.startTime) {
+        setValue('startTime', formData.startTime, { shouldValidate: true });
+      }
+      if (formData.endTime) {
+        setValue('endTime', formData.endTime, { shouldValidate: true });
+      }
     }
-  }, [formData]);
+  }, [formData, setValue]);
 
   // Обрабатывает перетаскивание файла
   const handleDrop = useCallback(async (e, fieldName) => {
@@ -253,43 +268,38 @@ const StepOne = ({ onNext, formData, setFormData }) => {
   }, []);
 
   const handleSaveDraft = async () => {
-    const currentValues = getValues();
-    const hasAnyData = currentValues.eventName || 
-                      currentValues.description || 
-                      currentValues.category || 
-                      currentValues.eventType || 
-                      currentValues.eventFormat || 
-                      (currentValues.tags && currentValues.tags.length > 0) ||
-                      currentValues.date ||
-                      currentValues.startTime ||
-                      currentValues.endTime ||
-                      currentValues.location ||
-                      currentValues.address ||
-                      currentValues.maxParticipants ||
-                      currentValues.cardBanner ||
-                      currentValues.pageBanner;
-
-    if (!hasAnyData) {
-      showNotification({
-        type: 'saveNoData',
-        message: 'Ни одно поле в форме не заполнено. Вы уверены, что хотите прекратить заполнение?',
-        actions: [
-          {
-            label: 'Подтвердить',
-            type: 'primary',
-            onClick: () => navigate('/profile/events')
-          },
-          {
-            label: 'Возобновить',
-            type: 'secondary',
-            onClick: () => {}
-          }
-        ]
-      });
-      return;
-    }
-
     try {
+      const currentValues = getValues();
+      
+      // Проверяем, есть ли заполненные поля
+      const hasFilledFields = Object.values(currentValues).some(value => {
+        if (Array.isArray(value)) return value.length > 0;
+        if (typeof value === 'object' && value !== null) {
+          return Object.values(value).some(v => v !== null && v !== '');
+        }
+        return value !== null && value !== '';
+      });
+
+      if (!hasFilledFields) {
+        showNotification({
+          type: 'saveNoData',
+          message: 'Ни одно поле в форме не заполнено. Вы уверены, что хотите прекратить заполнение?',
+          actions: [
+            {
+              label: 'Подтвердить',
+              type: 'primary',
+              onClick: () => navigate('/profile/events')
+            },
+            {
+              label: 'Возобновить',
+              type: 'secondary',
+              onClick: () => {}
+            }
+          ]
+        });
+        return;
+      }
+
       const updatedFormData = {
         ...formData,
         ...currentValues,
@@ -298,7 +308,6 @@ const StepOne = ({ onNext, formData, setFormData }) => {
         lastSaved: new Date().toISOString()
       };
 
-      // Сохраняем в localStorage
       let savedEvents = JSON.parse(localStorage.getItem("events")) || [];
       if (formData.id) {
         savedEvents = savedEvents.map(e => e.id === formData.id ? updatedFormData : e);
@@ -323,25 +332,30 @@ const StepOne = ({ onNext, formData, setFormData }) => {
     }
   };
 
-  const onSubmit = (data) => {
-    if (Object.keys(errors).length > 0) {
-      const errorMessages = Object.values(errors)
-        .map(error => error.message)
-        .filter(message => message)
-        .join('\n');
+  const onSubmit = async (data) => {
+    try {
+      const isValid = await trigger();
       
-      showNotification({
-        type: 'error',
-        message: errorMessages
-      });
-      return;
-    }
+      if (!isValid) {
+        const errorMessages = [];
+        Object.entries(formState.errors).forEach(([field, error]) => {
+          if (error?.message) {
+            errorMessages.push(error.message);
+          }
+        });
 
-    setFormData(prev => ({
-      ...prev,
-      ...data
-    }));
-    onNext(data);
+        if (errorMessages.length > 0) {
+          showNotification('error', errorMessages.join('\n'));
+          return;
+        }
+      }
+
+      // Если ошибок нет, переходим к следующему шагу
+      onNext(data);
+    } catch (error) {
+      console.error('Ошибка при отправке формы:', error);
+      showNotification('error', 'Произошла ошибка при отправке формы');
+    }
   };
 
   const eventTypeOptions = [
@@ -352,11 +366,6 @@ const StepOne = ({ onNext, formData, setFormData }) => {
   const eventFormatOptions = [
     { value: "offline", label: "Оффлайн" },
     { value: "online", label: "Онлайн" }
-  ];
-
-  const statusOptions = [
-    { value: "paid", label: "Платное" },
-    { value: "free", label: "Бесплатное" }
   ];
 
   return (
@@ -374,10 +383,10 @@ const StepOne = ({ onNext, formData, setFormData }) => {
             id="eventName"
             type="text"
             placeholder="Офлайн митап для проектных менеджеров от PM.Meetup и Lean Coffee Minsk"
-            className={errors.eventName ? "input-error" : ""}
+            className={formState.errors.eventName ? "input-error" : ""}
             {...register("eventName")}
           />
-          {errors.eventName && <span className="error-message">{errors.eventName.message}</span>}
+          {formState.errors.eventName && <span className="error-message">{formState.errors.eventName.message}</span>}
         </div>
         <div className="form-group">
           <div className="label-with-icon">
@@ -392,11 +401,11 @@ const StepOne = ({ onNext, formData, setFormData }) => {
           </div>
           <textarea
             id="description"
-            className={errors.description ? "input-error" : ""}
+            className={formState.errors.description ? "input-error" : ""}
             {...register("description")}
           />
           <span className="hint">0 из 1000 символов</span>
-          {errors.description && <span className="error-message">{errors.description.message}</span>}
+          {formState.errors.description && <span className="error-message">{formState.errors.description.message}</span>}
         </div>
 
         <div className="form-group">
@@ -404,7 +413,7 @@ const StepOne = ({ onNext, formData, setFormData }) => {
             Баннер карточки мероприятия
           </label>
           <div 
-            className={`file-upload-area ${errors.cardBanner ? "input-error" : ""}`}
+            className={`file-upload-area ${formState.errors.cardBanner ? "input-error" : ""}`}
             onClick={() => !cardPreview && document.getElementById('cardBanner').click()}
             onDrop={(e) => handleDrop(e, 'cardBanner')}
             onDragOver={handleDragOver}
@@ -443,7 +452,7 @@ const StepOne = ({ onNext, formData, setFormData }) => {
               </div>
             )}
           </div>
-          {errors.cardBanner && <span className="error-message">{errors.cardBanner.message}</span>}
+          {formState.errors.cardBanner && <span className="error-message">{formState.errors.cardBanner.message}</span>}
         </div>
 
         <div className="form-group">
@@ -451,7 +460,7 @@ const StepOne = ({ onNext, formData, setFormData }) => {
             Баннер на странице мероприятия
           </label>
           <div 
-            className={`file-upload-area ${errors.pageBanner ? "input-error" : ""}`}
+            className={`file-upload-area ${formState.errors.pageBanner ? "input-error" : ""}`}
             onClick={() => !pagePreview && document.getElementById('pageBanner').click()}
             onDrop={(e) => handleDrop(e, 'pageBanner')}
             onDragOver={handleDragOver}
@@ -490,7 +499,7 @@ const StepOne = ({ onNext, formData, setFormData }) => {
               </div>
             )}
           </div>
-          {errors.pageBanner && <span className="error-message">{errors.pageBanner.message}</span>}
+          {formState.errors.pageBanner && <span className="error-message">{formState.errors.pageBanner.message}</span>}
         </div>
 
         <div className="form-row">
@@ -502,9 +511,9 @@ const StepOne = ({ onNext, formData, setFormData }) => {
                 value={watch("eventType")}
                 onChange={(value) => setValue("eventType", value, { shouldValidate: true })}
                 placeholder="Выберите тип мероприятия"
-                error={errors.eventType}
+                error={formState.errors.eventType}
               />
-              {errors.eventType && <span className="error-message">{errors.eventType.message}</span>}
+              {formState.errors.eventType && <span className="error-message">{formState.errors.eventType.message}</span>}
             </div>
           </div>
 
@@ -516,9 +525,9 @@ const StepOne = ({ onNext, formData, setFormData }) => {
                 value={watch("eventFormat")}
                 onChange={(value) => setValue("eventFormat", value, { shouldValidate: true })}
                 placeholder="Выберите формат мероприятия"
-                error={errors.eventFormat}
+                error={formState.errors.eventFormat}
               />
-              {errors.eventFormat && <span className="error-message">{errors.eventFormat.message}</span>}
+              {formState.errors.eventFormat && <span className="error-message">{formState.errors.eventFormat.message}</span>}
             </div>
           </div>
         </div>
@@ -532,10 +541,10 @@ const StepOne = ({ onNext, formData, setFormData }) => {
                 value={watch("category")}
                 onChange={(value) => setValue("category", value, { shouldValidate: true })}
                 placeholder="Выберите категорию мероприятия"
-                error={errors.category}
+                error={formState.errors.category}
                 allowCustomInput={true}
               />
-              {errors.category && <span className="error-message">{errors.category.message}</span>}
+              {formState.errors.category && <span className="error-message">{formState.errors.category.message}</span>}
             </div>
           </div>
 
@@ -553,9 +562,9 @@ const StepOne = ({ onNext, formData, setFormData }) => {
             <TagsInput
               value={watch("tags") || []}
               onChange={(tags) => setValue("tags", tags, { shouldValidate: true })}
-              error={errors.tags}
+              error={formState.errors.tags}
             />
-            {errors.tags && <span className="error-message">{errors.tags.message}</span>}
+            {formState.errors.tags && <span className="error-message">{formState.errors.tags.message}</span>}
           </div>
         </div>
 
@@ -573,9 +582,9 @@ const StepOne = ({ onNext, formData, setFormData }) => {
                 setValue("endTime", time, { shouldValidate: true });
               }}
               errors={{
-                date: errors.date?.message,
-                startTime: errors.startTime?.message,
-                endTime: errors.endTime?.message
+                date: formState.errors.date?.message,
+                startTime: formState.errors.startTime?.message,
+                endTime: formState.errors.endTime?.message
               }}
             />
           </div>
@@ -589,10 +598,10 @@ const StepOne = ({ onNext, formData, setFormData }) => {
                 id="location"
                 type="text"
                 placeholder="InnoDom"
-                className={errors.location ? "input-error" : ""}
+                className={formState.errors.location ? "input-error" : ""}
                 {...register("location")}
               />
-              {errors.location && <span className="error-message">{errors.location.message}</span>}
+              {formState.errors.location && <span className="error-message">{formState.errors.location.message}</span>}
             </div>
           </div>
 
@@ -603,47 +612,10 @@ const StepOne = ({ onNext, formData, setFormData }) => {
                 id="address"
                 type="text"
                 placeholder="Минск, ул. Беломорская д.17"
-                className={errors.address ? "input-error" : ""}
+                className={formState.errors.address ? "input-error" : ""}
                 {...register("address")}
               />
-              {errors.address && <span className="error-message">{errors.address.message}</span>}
-            </div>
-          </div>
-        </div>
-
-        <div className="form-row">
-          <div className="form-col">
-            <div className="form-group">
-              <label htmlFor="status" required>Статус мероприятия</label>
-              <CustomSelect
-                options={statusOptions}
-                value={watch("status")}
-                onChange={(value) => setValue("status", value, { shouldValidate: true })}
-                placeholder="Выберите статус мероприятия"
-                error={errors.status}
-              />
-              {errors.status && <span className="error-message">{errors.status.message}</span>}
-            </div>
-          </div>
-
-          <div className="form-col">
-            <div className="form-group">
-              <div className="label-with-icon">
-                <label htmlFor="maxParticipants">Количество участников</label>
-                <span className="info-icon" data-tooltip="Укажите максимальное количество участников, которые могут зарегистрироваться на мероприятие">
-                  <svg width="16" height="16" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8.16602 6.49996H9.83268V4.83329H8.16602M8.99935 15.6666C5.32435 15.6666 2.33268 12.675 2.33268 8.99996C2.33268 5.32496 5.32435 2.33329 8.99935 2.33329C12.6743 2.33329 15.666 5.32496 15.666 8.99996C15.666 12.675 12.6743 15.6666 8.99935 15.6666ZM8.99935 0.666626C7.905 0.666626 6.82137 0.882174 5.81032 1.30096C4.79927 1.71975 3.88061 2.33358 3.10679 3.1074C1.54399 4.67021 0.666016 6.78982 0.666016 8.99996C0.666016 11.2101 1.54399 13.3297 3.10679 14.8925C3.88061 15.6663 4.79927 16.2802 5.81032 16.699C6.82137 17.1177 7.905 17.3333 8.99935 17.3333C11.2095 17.3333 13.3291 16.4553 14.8919 14.8925C16.4547 13.3297 17.3327 11.2101 17.3327 8.99996C17.3327 7.90561 17.1171 6.82198 16.6983 5.81093C16.2796 4.79988 15.6657 3.88122 14.8919 3.1074C14.1181 2.33358 13.1994 1.71975 12.1884 1.30096C11.1773 0.882174 10.0937 0.666626 8.99935 0.666626ZM8.16602 13.1666H9.83268V8.16663H8.16602V13.1666Z" fill="#202022" fillOpacity="0.8"/>
-                  </svg>
-                </span>
-              </div>
-              <input
-                id="maxParticipants"
-                type="number"
-                placeholder="35"
-                className={errors.maxParticipants ? "input-error" : ""}
-                {...register("maxParticipants")}
-              />
-              {errors.maxParticipants && <span className="error-message">{errors.maxParticipants.message}</span>}
+              {formState.errors.address && <span className="error-message">{formState.errors.address.message}</span>}
             </div>
           </div>
         </div>
