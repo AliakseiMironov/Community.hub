@@ -1,41 +1,45 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import EventCard from "../../components/events/EventCard/EventCard";
 import "../EventsManagement/EventsManagementPage.css";
-// стили для страницы управления мероприятиями берутся из profilePage.css т.к. events-management передается в profilePage.jsx в качестве Outlet
-const EventsManagementPage = () => {
-   const navigate = useNavigate();
-   const [events, setEvents] = useState([]);
-   const [activeFilters, setActiveFilters] = useState([]);
+import CommunityCard from "../../components/CommunityRegistrationForm/CommunityCard/CommunityCard";
 
-   useEffect(() => {
-      // Загрузка мероприятий из localStorage
-      const savedEvents = JSON.parse(localStorage.getItem("events")) || [];
-      setEvents(savedEvents);
+const LS_KEY = "communities";
+
+export default function CommunityManagementPage() {
+   const navigate = useNavigate();
+   const [communities, setCommunities] = useState([]);
+   const [filters, setFilters] = useState([]);
+
+   const sync = useCallback(() => {
+      setCommunities(JSON.parse(localStorage.getItem(LS_KEY)) || []);
    }, []);
 
+   useEffect(() => {
+      sync();
+      const h = (e) => e.key === LS_KEY && sync();
+      window.addEventListener("storage", h);
+      return () => window.removeEventListener("storage", h);
+   }, [sync]);
+
+   const save = (list) => {
+      localStorage.setItem(LS_KEY, JSON.stringify(list));
+      setCommunities(list);
+   };
+
+   const handleUpdate = (c) =>
+      save(communities.map((x) => (x.id === c.id ? c : x)));
    const handleDelete = (id) => {
-      if (window.confirm("Вы уверены, что хотите удалить мероприятие?")) {
-         const updatedEvents = events.filter((event) => event.id !== id);
-         setEvents(updatedEvents);
-         localStorage.setItem("events", JSON.stringify(updatedEvents));
-      }
+      if (!window.confirm("Удалить сообщество?")) return;
+      save(communities.filter((c) => c.id !== id));
    };
 
-   const toggleFilter = (filter) => {
-      setActiveFilters((prev) => {
-         if (prev.includes(filter)) {
-            return prev.filter((f) => f !== filter);
-         } else {
-            return [...prev, filter];
-         }
-      });
-   };
+   const toggle = (s) =>
+      setFilters((p) => (p.includes(s) ? p.filter((x) => x !== s) : [...p, s]));
 
-   const filteredEvents = events.filter((event) => {
-      if (activeFilters.length === 0) return true;
-      return activeFilters.some((filter) => event.status === filter);
-   });
+   const shown =
+      filters.length === 0
+         ? communities
+         : communities.filter((c) => filters.includes(c.status));
 
    return (
       <div className="events-management">
@@ -44,15 +48,9 @@ const EventsManagementPage = () => {
             onClick={() => navigate("/register-community")}
          >
             <span className="icon-wrapper">
-               <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 14 14"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-               >
+               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                   <path
-                     d="M14 7C14 7.55228 13.5523 8 13 8H8V13C8 13.5523 7.55228 14 7 14C6.44772 14 6 13.5523 6 13V8H1C0.447715 8 0 7.55228 0 7C0 6.44772 0.447715 6 1 6H6V1C6 0.447715 6.44772 0 7 0C7.55228 0 8 0.447715 8 1V6H13C13.5523 6 14 6.44772 14 7Z"
+                     d="M14 7C14 7.55 13.55 8 13 8H8V13C8 13.55 7.55 14 7 14C6.45 14 6 13.55 6 13V8H1C0.45 8 0 7.55 0 7C0 6.45 0.45 6 1 6H6V1C6 0.45 6.45 0 7 0C7.55 0 8 0.45 8 1V6H13C13.55 6 14 6.45 14 7Z"
                      fill="#202022"
                   />
                </svg>
@@ -60,68 +58,48 @@ const EventsManagementPage = () => {
             Создать сообщество
          </button>
 
-         {events.length === 0 ? (
+         {communities.length === 0 ? (
             <div className="empty-events">
                <p>
-                  Здесь будут отображаться карточки сообществ, которые вы
-                  создадите. Настройте основные параметры через форму заявки
-                  выше и начните организовывать свои первые мероприятия.
+                  Здесь будут карточки сообществ, которые вы создадите.
+                  Заполните форму «Создать сообщество» — и первый черновик
+                  появится в списке.
                </p>
             </div>
          ) : (
             <div className="events-container">
                <div className="events-filters">
+                  {["draft", "active", "hidden"].map((s) => (
+                     <button
+                        key={s}
+                        className={`filter-btn ${filters.includes(s) ? "active" : ""}`}
+                        onClick={() => toggle(s)}
+                     >
+                        {
+                           {
+                              draft: "Черновик",
+                              active: "Активно",
+                              hidden: "Скрыто",
+                           }[s]
+                        }
+                     </button>
+                  ))}
                   <button
-                     className={`filter-btn ${activeFilters.includes("draft") ? "active" : ""}`}
-                     onClick={() => toggleFilter("draft")}
+                     className={`filter-btn ${filters.length === 0 ? "active" : ""}`}
+                     onClick={() => setFilters([])}
                   >
-                     Черновик
-                  </button>
-                  <button
-                     className={`filter-btn ${activeFilters.includes("published") ? "active" : ""}`}
-                     onClick={() => toggleFilter("published")}
-                  >
-                     Опубликовано
-                  </button>
-                  <button
-                     className={`filter-btn ${activeFilters.includes("hidden") ? "active" : ""}`}
-                     onClick={() => toggleFilter("hidden")}
-                  >
-                     Скрыто
-                  </button>
-                  <button
-                     className={`filter-btn ${activeFilters.includes("completed") ? "active" : ""}`}
-                     onClick={() => toggleFilter("completed")}
-                  >
-                     Завершено
-                  </button>
-                  <button
-                     className={`filter-btn ${activeFilters.includes("cancelled") ? "active" : ""}`}
-                     onClick={() => toggleFilter("cancelled")}
-                  >
-                     Отменено
+                     Все
                   </button>
                </div>
+
                <div className="events-list">
-                  {filteredEvents.map((event) => (
-                     <div key={event.id} className="event-item">
-                        <EventCard event={event} />
-                        <div className="event-actions">
-                           <button
-                              className="edit-button"
-                              onClick={() =>
-                                 navigate(`/register-event/${event.id}`)
-                              }
-                           >
-                              Редактировать
-                           </button>
-                           <button
-                              className="delete-button"
-                              onClick={() => handleDelete(event.id)}
-                           >
-                              Удалить
-                           </button>
-                        </div>
+                  {shown.map((c) => (
+                     <div key={c.id} className="event-item">
+                        <CommunityCard
+                           community={c}
+                           onUpdate={handleUpdate}
+                           onDelete={handleDelete}
+                        />
                      </div>
                   ))}
                </div>
@@ -129,6 +107,4 @@ const EventsManagementPage = () => {
          )}
       </div>
    );
-};
-
-export default EventsManagementPage;
+}

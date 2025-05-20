@@ -1,6 +1,6 @@
 import React from "react";
-import { TextInput } from "../../../events/EventRegistrationForm/InputComponents/TextInput";
-import { ImageUpload } from "../../../events/EventRegistrationForm/InputComponents/ImageUpload";
+import { TextInput } from "../../../../events/EventRegistrationForm/InputComponents/TextInput";
+import { ImageUpload } from "../../../../events/EventRegistrationForm/InputComponents/ImageUpload";
 
 export default function SponsorFields({
    nestIndex,

@@ -133,7 +133,7 @@
 .form-section {
    display: flex;
    flex-direction: column;
-   gap: 16px;
+   gap: 10px;
 }
 
 .form-section-title {
@@ -155,8 +155,12 @@
 .step-form {
    display: flex;
    flex-direction: column;
-   padding: 24px 16px;
+   padding: 24px 0px;
    gap: 16px;
+}
+
+.step-form-with-form {
+   padding: 0px 16px;
 }
 
 .form-group {
@@ -400,6 +404,28 @@
    flex-direction: column;
 }
 
+.file-upload-area.logo {
+   flex-direction: row;
+
+   align-items: flex-start;
+   justify-content: flex-start;
+   height: 43px;
+   padding: 12px 12px;
+}
+.file-upload-area.logo .file-upload-content {
+   flex-direction: row;
+   padding: 0;
+}
+
+.file-upload-area.logo .file-upload-content .placeholder {
+   background-color: #ffffff;
+   text-decoration: underline;
+   color: #c7c7cc;
+   font-size: 14px;
+   line-height: 20px;
+   cursor: pointer;
+}
+
 .file-upload-area:hover {
    border-color: #fee719;
 }
@@ -416,6 +442,14 @@
    line-height: 20px;
    text-decoration: underline;
    color: #c7c7cc;
+}
+
+.file-upload-content .placeholder {
+   text-decoration: underline;
+   color: #c7c7cc;
+   font-size: 14px;
+   line-height: 20px;
+   cursor: pointer;
 }
 
 .file-upload-preview {
@@ -645,4 +679,72 @@ or
 .social-input-row input:focus {
    border-color: #fee719;
    outline: none;
+}
+
+.ticket-fields > .form-group:not(:last-child) {
+   margin-bottom: 16px;
+}
+
+.tickets-container > .ticket-item:not(:last-child) {
+   margin-bottom: 24px;
+}
+
+.ticket-header > span {
+   color: #c7c7cc;
+   font-weight: 500;
+}
+
+.ticket-header {
+   display: flex;
+   align-items: center;
+   gap: 8px;
+}
+
+.ticket-header .remove-ticket {
+   background: none;
+   border: none;
+   padding: 0;
+   font-size: 16px;
+   line-height: 1;
+   color: #c7c7cc;
+   cursor: pointer;
+}
+
+.ticket-header .remove-ticket:hover {
+   opacity: 0.8;
+}
+
+.btn-add {
+   display: inline-block;
+   background: #ffffff;
+   border: 1px solid #fee719;
+   border-radius: 40px;
+   padding: 10px 12px;
+   cursor: pointer;
+   font-family: "Roboto", sans-serif;
+   font-weight: 500;
+   font-size: 14px;
+   line-height: 20px;
+   color: #202022;
+}
+
+.btn-add:hover {
+   background: #fee719;
+}
+
+.btn-add:active {
+   background: #fee719;
+   color: #ffffff;
+}
+
+.upper-slump {
+   margin-top: 16px;
+}
+
+.form-section-subtitle {
+   font-family: Roboto;
+   font-weight: 600;
+   font-size: 20px;
+   line-height: 24px;
+   letter-spacing: 0%;
 }

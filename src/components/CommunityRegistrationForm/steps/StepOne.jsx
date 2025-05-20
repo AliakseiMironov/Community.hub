@@ -23,7 +23,7 @@ import {
    TelegramIcon,
 } from "../../events/EventRegistrationForm/InputComponents/SocialIcons";
 
-const schema = yup.object().shape({
+const schema = yup.object({
    communityEventName: yup
       .string()
       .required("Введите название сообщества")
@@ -32,25 +32,23 @@ const schema = yup.object().shape({
    communityDescription: yup
       .string()
       .required("Описание сообщества обязательно")
-      .min(10, "Минимальная длина — 10 символов")
-      .max(1000, "Максимальная длина — 1000 символов"),
+      .min(10, "Минимум 10 символов")
+      .max(1000, "Максимум 1000 символов"),
 
-   communityEventType: yup.string().notRequired(),
+   communityLocation: yup.string().required("Укажите город"),
 
-   tags: yup.array().of(yup.string()).notRequired(),
-
-   logotipBanner: yup.mixed().notRequired(),
-   cardBanner: yup.mixed().notRequired(),
-
-   communityLocation: yup.string().notRequired(),
+   communityEventType: yup.string().required("Выберите формат сообщества"),
 
    contactEmail: yup
       .string()
-      .transform((value, original) =>
-         original.trim() === "" ? undefined : value
-      )
-      .email("Некорректный email")
-      .notRequired(),
+      .required("Введите e-mail")
+      .email("Некорректный e-mail"),
+
+   tags: yup.array().min(1, "Добавьте хотя бы один тег"),
+
+   logotipBanner: yup.mixed().required("Загрузите логотип"),
+
+   cardBanner: yup.mixed().required("Загрузите баннер"),
 });
 
 const categoryOptions = [
@@ -185,7 +183,7 @@ const StepOne = ({ onNext, formData, setFormData }) => {
 
       const minDimensions =
          fieldName === "cardBanner"
-            ? { width: 420, height: 256 }
+            ? { width: 360, height: 360 }
             : { width: 1300, height: 320 };
 
       try {
@@ -285,81 +283,59 @@ const StepOne = ({ onNext, formData, setFormData }) => {
       e.stopPropagation();
    }, []);
 
-   const handleSaveDraft = async () => {
-      const currentValues = getValues();
-      const hasAnyData =
-         currentValues.eventName ||
-         currentValues.description ||
-         currentValues.category ||
-         currentValues.eventType ||
-         currentValues.eventFormat ||
-         (currentValues.tags && currentValues.tags.length > 0) ||
-         currentValues.date ||
-         currentValues.startTime ||
-         currentValues.endTime ||
-         currentValues.location ||
-         currentValues.address ||
-         currentValues.maxParticipants ||
-         currentValues.cardBanner ||
-         currentValues.pageBanner;
+   const LS_KEY = "communities";
 
-      if (!hasAnyData) {
+   const handleSaveDraft = () => {
+      const values = getValues();
+
+      const hasData =
+         values.communityEventName ||
+         values.communityDescription ||
+         values.communityLocation ||
+         values.communityEventType ||
+         (values.tags && values.tags.length > 0) ||
+         values.logotipBanner ||
+         values.cardBanner;
+
+      if (!hasData) {
          showNotification({
             type: "saveNoData",
             message:
-               "Ни одно поле в форме не заполнено. Вы уверены, что хотите прекратить заполнение?",
+               "Ни одно поле не заполнено. Вы уверены, что хотите прекратить заполнение?",
             actions: [
                {
                   label: "Подтвердить",
                   type: "primary",
-                  onClick: () => navigate("/profile/events"),
+                  onClick: () => navigate("/profile/community"),
                },
-               {
-                  label: "Возобновить",
-                  type: "secondary",
-                  onClick: () => {},
-               },
+               { label: "Возобновить", type: "secondary", onClick: () => {} },
             ],
          });
          return;
       }
 
-      try {
-         const updatedFormData = {
-            ...formData,
-            ...currentValues,
-            status: "draft",
-            isDraft: true,
-            lastSaved: new Date().toISOString(),
-         };
+      const draft = {
+         ...formData,
+         ...values,
+         status: "draft",
+         lastSaved: new Date().toISOString(),
+      };
 
-         // Сохраняем в localStorage
-         let savedEvents = JSON.parse(localStorage.getItem("events")) || [];
-         if (formData.id) {
-            savedEvents = savedEvents.map((e) =>
-               e.id === formData.id ? updatedFormData : e
-            );
-         } else {
-            const newEvent = { id: Date.now(), ...updatedFormData };
-            savedEvents.push(newEvent);
-         }
-         localStorage.setItem("events", JSON.stringify(savedEvents));
+      let list = JSON.parse(localStorage.getItem(LS_KEY)) || [];
 
-         setFormData(updatedFormData);
-         showNotification({
-            type: "saveDraft",
-            message:
-               "Черновик мероприятия с внесенными данными успешно сохранен и будет отображен в личном кабинете в виде карточки, где вы можете управлять им.",
-         });
-         navigate("/profile/events");
-      } catch (error) {
-         console.error("Ошибка при сохранении черновика:", error);
-         showNotification({
-            type: "error",
-            message:
-               "Ошибка при сохранении черновика. Пожалуйста, попробуйте еще раз.",
-         });
+      if (draft.id) {
+         list = list.map((c) => (c.id === draft.id ? draft : c));
+      } else {
+         draft.id = Date.now();
+         list.push(draft);
       }
+
+      localStorage.setItem(LS_KEY, JSON.stringify(list));
+
+      setFormData(draft);
+      showNotification({ type: "success", message: "Черновик сохранён" });
+
+      navigate("/profile/community");
    };
 
    const onSubmit = (data) => {
@@ -438,166 +414,189 @@ const StepOne = ({ onNext, formData, setFormData }) => {
             className="step-form"
             onSubmit={handleSubmit(onValid, onInvalid)}
          >
-            <div className="form-section">
-               <span className="form-section-title">Общая информация</span>
-            </div>
-
-            <div className="form-group">
-               <ImageUpload
-                  id="logotipBanner"
-                  label="Логотип сообщества"
-                  preview={logotipPreview}
-                  fileName={logotipFileName}
-                  error={errors.logotipBanner}
-                  onChange={(e, id) =>
-                     handleImageChange(e, id, setLogotipPreview)
-                  }
-                  onRemove={handleRemoveImage}
-                  onDrop={handleDrop}
-                  onDragOver={handleDragOver}
-                  // required
-                  style={{ height: "170px" }}
-               />
-
-               <TextInput
-                  id="communityEventName"
-                  label="Название сообщества"
-                  placeholder="Иванов"
-                  register={register}
-                  error={errors.communityEventName}
-                  // required
-               />
-            </div>
-
-            <TextareaWithHelp
-               id="communityDescription"
-               label="Описание сообщества"
-               tooltip="Кратко опишите цели, концепцию, тематику и целевую аудиторию мероприятия."
-               hint="0 из 1000 символов"
-               register={register}
-               error={errors.communityDescription}
-               // required
-            />
-
-            <ImageUpload
-               id="cardBanner"
-               label="Баннер на странице сообщества"
-               preview={cardPreview}
-               fileName={cardFileName}
-               error={errors.cardBanner}
-               onChange={(e, id) => handleImageChange(e, id, setCardPreview)}
-               onRemove={handleRemoveImage}
-               onDrop={handleDrop}
-               onDragOver={handleDragOver}
-               // required
-            />
-            <div className="form-row">
-               <div className="form-col">
-                  <div className="form-group">
-                     <TextInput
-                        id="communityLocation"
-                        label="Месторасположение сообщества"
-                        placeholder="Минск"
-                        register={register}
-                        error={errors.communityLocation}
-                        tooltip="Укажите город, которое будет являться местоположением вашего сообщества"
-                        // required
-                     />
-                  </div>
+            <div className="step-form-with-form">
+               <div className="form-section">
+                  <span className="form-section-title">Общая информация</span>
                </div>
-               <div className="form-col">
-                  <div className="form-group">
-                     <SelectionInput
-                        id="communityEventType"
-                        label="Формат сообщества"
-                        options={communityTypeOptions}
-                        value={watch("communityEventType")}
-                        onChange={(value) =>
-                           setValue("communityEventType", value, {
-                              shouldValidate: true,
-                           })
-                        }
-                        placeholder="Выберите формат сообщества"
-                        error={errors.communityEventType}
-                        tooltip="Выберите формат сообщества: онлайн, оффлайн или гибридный"
-                        // required
-                     />
-                  </div>
-               </div>
-            </div>
 
-            <div className="form-col">
                <div className="form-group">
-                  <div className="label-with-icon">
-                     <label
-                        htmlFor="tags"
-                        // required
-                     >
-                        Теги
-                     </label>
-                     <span
-                        className="info-icon"
-                        data-tooltip="Введите ключевые слова, которые отражают тематику вашего мероприятия. (например, Java, маркетинг, soft skills)"
-                     >
-                        <svg
-                           width="16"
-                           height="16"
-                           viewBox="0 0 18 18"
-                           fill="none"
-                           xmlns="http://www.w3.org/2000/svg"
-                        >
-                           <path
-                              d="M8.16602 6.49996H9.83268V4.83329H8.16602M8.99935 15.6666C5.32435 15.6666 2.33268 12.675 2.33268 8.99996C2.33268 5.32496 5.32435 2.33329 8.99935 2.33329C12.6743 2.33329 15.666 5.32496 15.666 8.99996C15.666 12.675 12.6743 15.6666 8.99935 15.6666ZM8.99935 0.666626C7.905 0.666626 6.82137 0.882174 5.81032 1.30096C4.79927 1.71975 3.88061 2.33358 3.10679 3.1074C1.54399 4.67021 0.666016 6.78982 0.666016 8.99996C0.666016 11.2101 1.54399 13.3297 3.10679 14.8925C3.88061 15.6663 4.79927 16.2802 5.81032 16.699C6.82137 17.1177 7.905 17.3333 8.99935 17.3333C11.2095 17.3333 13.3291 16.4553 14.8919 14.8925C16.4547 13.3297 17.3327 11.2101 17.3327 8.99996C17.3327 7.90561 17.1171 6.82198 16.6983 5.81093C16.2796 4.79988 15.6657 3.88122 14.8919 3.1074C14.1181 2.33358 13.1994 1.71975 12.1884 1.30096C11.1773 0.882174 10.0937 0.666626 8.99935 0.666626ZM8.16602 13.1666H9.83268V8.16663H8.16602V13.1666Z"
-                              fill="#202022"
-                              fillOpacity="0.8"
+                  <ImageUpload
+                     id="logotipBanner"
+                     label="Логотип сообщества"
+                     preview={logotipPreview}
+                     size="360*360"
+                     fileName={logotipFileName}
+                     error={errors.logotipBanner}
+                     onChange={(e, id) =>
+                        handleImageChange(e, id, setLogotipPreview)
+                     }
+                     onRemove={handleRemoveImage}
+                     onDrop={handleDrop}
+                     onDragOver={handleDragOver}
+                     required
+                     style={{ height: "170px" }}
+                  />
+
+                  <TextInput
+                     id="communityEventName"
+                     label="Название сообщества"
+                     placeholder="Иванов"
+                     register={register}
+                     error={errors.communityEventName}
+                     required
+                  />
+               </div>
+
+               <div className="upper-slump">
+                  <TextareaWithHelp
+                     id="communityDescription"
+                     label="Описание сообщества"
+                     tooltip="Кратко опишите цели, концепцию, тематику и целевую аудиторию мероприятия."
+                     hint="0 из 1000 символов"
+                     register={register}
+                     error={errors.communityDescription}
+                     required
+                  />
+               </div>
+
+               <div className="upper-slump">
+                  <ImageUpload
+                     id="cardBanner"
+                     label="Баннер на странице сообщества"
+                     preview={cardPreview}
+                     fileName={cardFileName}
+                     error={errors.cardBanner}
+                     onChange={(e, id) =>
+                        handleImageChange(e, id, setCardPreview)
+                     }
+                     onRemove={handleRemoveImage}
+                     onDrop={handleDrop}
+                     onDragOver={handleDragOver}
+                     required
+                  />
+               </div>
+
+               <div className="upper-slump">
+                  <div className="form-row">
+                     <div className="form-col">
+                        <div className="form-group">
+                           <TextInput
+                              id="communityLocation"
+                              label="Месторасположение сообщества"
+                              placeholder="Минск"
+                              register={register}
+                              error={errors.communityLocation}
+                              tooltip="Укажите город, которое будет являться местоположением вашего сообщества"
+                              required
                            />
-                        </svg>
-                     </span>
+                        </div>
+                     </div>
+                     <div className="form-col">
+                        <div className="form-group">
+                           <SelectionInput
+                              id="communityEventType"
+                              label="Формат сообщества"
+                              options={communityTypeOptions}
+                              value={watch("communityEventType")}
+                              onChange={(value) =>
+                                 setValue("communityEventType", value, {
+                                    shouldValidate: true,
+                                 })
+                              }
+                              placeholder="Выберите формат сообщества"
+                              error={errors.communityEventType}
+                              tooltip="Выберите формат сообщества: онлайн, оффлайн или гибридный"
+                              required
+                           />
+                        </div>
+                     </div>
                   </div>
                </div>
-               <TagsInput
-                  value={watch("tags") || []}
-                  onChange={(tags) =>
-                     setValue("tags", tags, { shouldValidate: true })
-                  }
-                  error={errors.tags}
-               />
-               {errors.tags && (
-                  <span className="error-message">{errors.tags.message}</span>
-               )}
-            </div>
-            <TextInput
-               id="contactEmail"
-               label="Контактный e-mail сообщества"
-               placeholder="ivanov_ivan@gmail.com"
-               register={register}
-               error={errors.contactEmail}
-               tooltip="Укажите контактный e-mail сообщества"
-               // required
-            />
 
-            <div className="form-group">
-               <label htmlFor={socialLinks[0].id}>Соцсети сообщества</label>
-               {socialLinks.map(({ id, label, icon, placeholder }) => (
-                  <SocialInput
-                     key={id}
-                     id={id}
-                     label={label}
-                     icon={icon}
-                     placeholder={placeholder}
-                     value={watch(id) || ""}
-                     onChange={(id, val) =>
-                        setValue(id, val, { shouldValidate: true })
-                     }
+               <div className="upper-slump">
+                  <div className="form-col">
+                     <div className="form-group">
+                        <div className="label-with-icon">
+                           <label htmlFor="tags" required>
+                              Теги
+                           </label>
+                           <span
+                              className="info-icon"
+                              data-tooltip="Введите ключевые слова, которые отражают тематику вашего мероприятия. (например, Java, маркетинг, soft skills)"
+                           >
+                              <svg
+                                 width="16"
+                                 height="16"
+                                 viewBox="0 0 18 18"
+                                 fill="none"
+                                 xmlns="http://www.w3.org/2000/svg"
+                              >
+                                 <path
+                                    d="M8.16602 6.49996H9.83268V4.83329H8.16602M8.99935 15.6666C5.32435 15.6666 2.33268 12.675 2.33268 8.99996C2.33268 5.32496 5.32435 2.33329 8.99935 2.33329C12.6743 2.33329 15.666 5.32496 15.666 8.99996C15.666 12.675 12.6743 15.6666 8.99935 15.6666ZM8.99935 0.666626C7.905 0.666626 6.82137 0.882174 5.81032 1.30096C4.79927 1.71975 3.88061 2.33358 3.10679 3.1074C1.54399 4.67021 0.666016 6.78982 0.666016 8.99996C0.666016 11.2101 1.54399 13.3297 3.10679 14.8925C3.88061 15.6663 4.79927 16.2802 5.81032 16.699C6.82137 17.1177 7.905 17.3333 8.99935 17.3333C11.2095 17.3333 13.3291 16.4553 14.8919 14.8925C16.4547 13.3297 17.3327 11.2101 17.3327 8.99996C17.3327 7.90561 17.1171 6.82198 16.6983 5.81093C16.2796 4.79988 15.6657 3.88122 14.8919 3.1074C14.1181 2.33358 13.1994 1.71975 12.1884 1.30096C11.1773 0.882174 10.0937 0.666626 8.99935 0.666626ZM8.16602 13.1666H9.83268V8.16663H8.16602V13.1666Z"
+                                    fill="#202022"
+                                    fillOpacity="0.8"
+                                 />
+                              </svg>
+                           </span>
+                        </div>
+                     </div>
+                     <TagsInput
+                        value={watch("tags") || []}
+                        onChange={(tags) =>
+                           setValue("tags", tags, { shouldValidate: true })
+                        }
+                        error={errors.tags}
+                     />
+                     {errors.tags && (
+                        <span className="error-message">
+                           {errors.tags.message}
+                        </span>
+                     )}
+                  </div>
+               </div>
+
+               <div className="upper-slump">
+                  <TextInput
+                     id="contactEmail"
+                     label="Контактный e-mail сообщества"
+                     placeholder="ivanov_ivan@gmail.com"
+                     register={register}
+                     error={errors.contactEmail}
+                     tooltip="Укажите контактный e-mail сообщества"
+                     required
                   />
-               ))}
-            </div>
+               </div>
 
+               <div className="upper-slump">
+                  <div className="form-group">
+                     <label htmlFor={socialLinks[0].id}>
+                        Соцсети сообщества
+                     </label>
+                     {socialLinks.map(({ id, label, icon, placeholder }) => (
+                        <SocialInput
+                           key={id}
+                           id={id}
+                           label={label}
+                           icon={icon}
+                           placeholder={placeholder}
+                           value={watch(id) || ""}
+                           onChange={(id, val) =>
+                              setValue(id, val, { shouldValidate: true })
+                           }
+                        />
+                     ))}
+                  </div>
+               </div>
+            </div>
             <div className="form-buttons">
                <button type="submit" className="btn-сontinue">
                   Продолжить
                </button>
-               <button type="button" className="btn-saveAsDraft">
+               <button
+                  type="button"
+                  className="btn-saveAsDraft"
+                  onClick={handleSaveDraft}
+               >
                   Сохранить как черновик
                </button>
             </div>

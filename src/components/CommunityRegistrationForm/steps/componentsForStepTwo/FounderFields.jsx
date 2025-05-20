@@ -1,6 +1,6 @@
 import React from "react";
-import { TextInput } from "../../../events/EventRegistrationForm/InputComponents/TextInput";
-import { SocialInput } from "../../../events/EventRegistrationForm/InputComponents/SocialInput";
+import { TextInput } from "../../../../events/EventRegistrationForm/InputComponents/TextInput";
+import { SocialInput } from "../../../../events/EventRegistrationForm/InputComponents/SocialInput";
 
 export default function FounderFields({
    nestIndex,
