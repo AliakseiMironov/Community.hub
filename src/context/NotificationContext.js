@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext } from "react";
-import Notification from "../components/common/Notification/Notification";
+import Notification from "../components/common/Notification/Notification.jsx";
 
 const NotificationContext = createContext();
 
@@ -7,6 +7,7 @@ const NotificationProvider = ({ children }) => {
   const [notification, setNotification] = useState(null);
   let timer;
 
+  // <<<<<<< HEAD
   const showNotification = (typeOrConfig, message, actions) => {
     let config;
 
@@ -26,6 +27,15 @@ const NotificationProvider = ({ children }) => {
       timer = setTimeout(() => setNotification(null), 600000);
     }
   };
+  // =======
+  //    const showNotification = (type, message, actions) => {
+  //       setNotification({ type, message, actions });
+  //       if (type !== "saveNoData") {
+  //          clearTimeout(timer);
+  //          timer = setTimeout(() => setNotification(null), 600000);
+  //       }
+  //    };
+  // >>>>>>> origin/dev-irina
 
   return (
     <NotificationContext.Provider value={{ showNotification }}>
